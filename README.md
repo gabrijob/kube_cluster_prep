@@ -1,5 +1,8 @@
 # Reserving the machines
 	$ oarsub -I -p [CLUSTER_NAME] -l host=[N_HOSTS],walltime=[PERIOD]  -t deploy
+	or
+	$ oarsub -p [CLUSTER_NAME] -l host=[N_HOSTS],walltime=[PERIOD] -r [YYYY-MM-DD HH:MM:SS] -t deploy
+
 	$ kadeploy3 ubuntu2004-min -f $OAR_FILE_NODES -k ~/.ssh/id_rsa.pub
 
 # Setting up the Kubernetes cluster
@@ -21,6 +24,5 @@
 	Here we'll use Weave, but another one can be used.
 	 
 	$ kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+	$ export KUBECONFIG=/etc/kubernetes/admin.conf
 
-
-export KUBECONFIG=/etc/kubernetes/admin.conf
