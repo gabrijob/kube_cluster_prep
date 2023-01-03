@@ -122,6 +122,10 @@ global:
       # seccomp.security.alpha.kubernetes.io/defaultProfileName: 'docker/default'
       # apparmor.security.beta.kubernetes.io/defaultProfileName: 'runtime/default'
 
+  ## Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...)
+  ##
+  imageRegistry: ""
+
   ## Reference to one or more secrets to be used when pulling images
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
   ##
@@ -457,7 +461,8 @@ alertmanager:
     ## Image of Alertmanager
     ##
     image:
-      repository: quay.io/prometheus/alertmanager
+      registry: quay.io
+      repository: prometheus/alertmanager
       tag: v0.24.0
       sha: ""
 
@@ -599,16 +604,16 @@ alertmanager:
     ## Assign custom affinity rules to the alertmanager instance
     ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
     ##
-    affinity: {}
-    # nodeAffinity:
-    #   requiredDuringSchedulingIgnoredDuringExecution:
-    #     nodeSelectorTerms:
-    #     - matchExpressions:
-    #       - key: kubernetes.io/e2e-az-name
-    #         operator: In
-    #         values:
-    #         - e2e-az1
-    #         - e2e-az2
+    affinity: 
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+         nodeSelectorTerms:
+         - matchExpressions:
+           - key: kubernetes.io/e2e-az-name
+             operator: In
+             values:
+             - e2e-az1
+             - e2e-az2
 
     ## If specified, the pod's tolerations.
     ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
@@ -1622,7 +1627,8 @@ prometheusOperator:
     patch:
       enabled: true
       image:
-        repository: k8s.gcr.io/ingress-nginx/kube-webhook-certgen
+        registry: k8s.gcr.io
+        repository: ingress-nginx/kube-webhook-certgen
         tag: v1.3.0
         sha: ""
         pullPolicy: IfNotPresent
@@ -1840,16 +1846,16 @@ prometheusOperator:
   ## Assign custom affinity rules to the prometheus operator
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   ##
-  affinity: {}
-    # nodeAffinity:
-    #   requiredDuringSchedulingIgnoredDuringExecution:
-    #     nodeSelectorTerms:
-    #     - matchExpressions:
-    #       - key: kubernetes.io/e2e-az-name
-    #         operator: In
-    #         values:
-    #         - e2e-az1
-    #         - e2e-az2
+  affinity: 
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+         nodeSelectorTerms:
+         - matchExpressions:
+           - key: kubernetes.io/e2e-az-name
+             operator: In
+             values:
+             - e2e-az1
+             - e2e-az2
   dnsConfig: {}
     # nameservers:
     #   - 1.2.3.4
@@ -1896,24 +1902,34 @@ prometheusOperator:
   ## Prometheus-operator image
   ##
   image:
-    repository: quay.io/prometheus-operator/prometheus-operator
+    registry: quay.io
+    repository: prometheus-operator/prometheus-operator
     tag: v0.60.1
     sha: ""
     pullPolicy: IfNotPresent
 
   ## Prometheus image to use for prometheuses managed by the operator
   ##
-  # prometheusDefaultBaseImage: quay.io/prometheus/prometheus
+  # prometheusDefaultBaseImage: prometheus/prometheus
+
+  ## Prometheus image registry to use for prometheuses managed by the operator
+  ##
+  # prometheusDefaultBaseImageRegistry: quay.io
 
   ## Alertmanager image to use for alertmanagers managed by the operator
   ##
-  # alertmanagerDefaultBaseImage: quay.io/prometheus/alertmanager
+  # alertmanagerDefaultBaseImage: prometheus/alertmanager
+
+  ## Alertmanager image registry to use for alertmanagers managed by the operator
+  ##
+  # alertmanagerDefaultBaseImageRegistry: quay.io
 
   ## Prometheus-config-reloader
   ##
   prometheusConfigReloader:
     image:
-      repository: quay.io/prometheus-operator/prometheus-config-reloader
+      registry: quay.io
+      repository: prometheus-operator/prometheus-config-reloader
       tag: v0.60.1
       sha: ""
 
@@ -1929,7 +1945,8 @@ prometheusOperator:
   ## Thanos side-car image when configured
   ##
   thanosImage:
-    repository: quay.io/thanos/thanos
+    registry: quay.io
+    repository: thanos/thanos
     tag: v0.28.1
     sha: ""
 
@@ -2366,7 +2383,8 @@ prometheus:
     ## Image of Prometheus.
     ##
     image:
-      repository: quay.io/prometheus/prometheus
+      registry: quay.io
+      repository: prometheus/prometheus
       tag: v2.39.1
       sha: ""
 
@@ -2614,16 +2632,16 @@ prometheus:
     ## Assign custom affinity rules to the prometheus instance
     ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
     ##
-    affinity: {}
-    # nodeAffinity:
-    #   requiredDuringSchedulingIgnoredDuringExecution:
-    #     nodeSelectorTerms:
-    #     - matchExpressions:
-    #       - key: kubernetes.io/e2e-az-name
-    #         operator: In
-    #         values:
-    #         - e2e-az1
-    #         - e2e-az2
+    affinity: 
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+         nodeSelectorTerms:
+         - matchExpressions:
+           - key: kubernetes.io/e2e-az-name
+             operator: In
+             values:
+             - e2e-az1
+             - e2e-az2
 
     ## The remote_read spec configuration for Prometheus.
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#remotereadspec
@@ -2651,16 +2669,16 @@ prometheus:
     ## Prometheus StorageSpec for persistent data
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/storage.md
     ##
-    storageSpec: {}
+    storageSpec: 
     ## Using PersistentVolumeClaim
     ##
-    #  volumeClaimTemplate:
-    #    spec:
-    #      storageClassName: gluster
-    #      accessModes: ["ReadWriteOnce"]
-    #      resources:
-    #        requests:
-    #          storage: 50Gi
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-storage
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
     #    selector: {}
 
     ## Using tmpfs volume
@@ -3207,7 +3225,8 @@ thanosRuler:
     ## Image of ThanosRuler
     ##
     image:
-      repository: quay.io/thanos/thanos
+      registry: quay.io
+      repository: thanos/thanos
       tag: v0.28.1
       sha: ""
 
@@ -3354,16 +3373,16 @@ thanosRuler:
     ## Assign custom affinity rules to the thanosRuler instance
     ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
     ##
-    affinity: {}
-    # nodeAffinity:
-    #   requiredDuringSchedulingIgnoredDuringExecution:
-    #     nodeSelectorTerms:
-    #     - matchExpressions:
-    #       - key: kubernetes.io/e2e-az-name
-    #         operator: In
-    #         values:
-    #         - e2e-az1
-    #         - e2e-az2
+    affinity: 
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+         nodeSelectorTerms:
+         - matchExpressions:
+           - key: kubernetes.io/e2e-az-name
+             operator: In
+             values:
+             - e2e-az1
+             - e2e-az2
 
     ## If specified, the pod's tolerations.
     ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/

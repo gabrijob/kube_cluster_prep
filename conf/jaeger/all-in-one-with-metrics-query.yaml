@@ -1,0 +1,98 @@
+---
+apiVersion: jaegertracing.io/v1
+kind: "Jaeger"
+metadata:
+  name: "all-in-one-jaeger"
+spec:
+  strategy: allInOne
+  allInOne:
+    image: jaegertracing/all-in-one:latest
+    options:
+      log-level: debug
+        #query:
+        # base-path: /jaeger
+      metrics-http-route: "172.16.52.9"
+      prometheus:
+        server-url: "http://prometheus:9090"
+    metricsStorage:
+      type: prometheus
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/e2e-az-name
+                operator: In
+                values:
+                  - e2e-az1
+                  - e2e-az2
+  storage:
+    type: elasticsearch
+    elasticsearch:
+      nodeCount: 1
+      storage:
+        size: 5Gi
+      resources:
+        requests:
+          cpu: 200m
+          memory: 4Gi
+        limits:
+          memory: 4Gi
+      redundancyPolicy: ZeroRedundancy
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  labels:
+#    app.kubernetes.io/component: metrics
+#    name: all-in-one-jaeger
+#  name: all-in-one-jaeger-metrics
+#  namespace: monitoring
+#spec:
+#  ports:
+#    - name: admin-port
+#      port: 14269
+#      protocol: TCP
+#  selector:
+#    name: "all-in-one-jaeger"
+#  type: ClusterIP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: jaeger
+    app.kubernetes.io/managed-by: jaeger-operator
+    release: "kube-prometheus"
+    serviceMonitorSelector: prometheus
+  name: "jaeger-operator"
+  namespace: monitoring
+spec:
+  endpoints:
+    - interval: 5s
+      path: /metrics
+      port: https
+      targetPort: 8443
+      scheme: https
+  selector:
+    matchLabels:
+      name: jaeger-operator
+---
+#apiVersion: monitoring.coreos.com/v1
+#kind: ServiceMonitor
+#metadata:
+#  labels:
+#    app: jaeger
+#    app.kubernetes.io/managed-by: jaeger-operator
+#    release: "kube-prometheus"
+#    serviceMonitorSelector: prometheus
+#  name: "all-in-one-jaeger"
+#  namespace: monitoring
+#spec:
+#  endpoints:
+#    - interval: 10s
+#      targetPort: 14269
+#  selector:
+#    matchLabels:
+#      name: all-in-one-jaeger
+#---

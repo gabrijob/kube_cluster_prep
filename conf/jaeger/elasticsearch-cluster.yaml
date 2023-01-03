@@ -1,0 +1,22 @@
+---
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch-cluster
+spec:
+  version: 8.5.2
+  volumeClaimDeletePolicy: DeleteOnScaledownAndClusterDeletion
+  nodeSets:
+    - name: default
+      count: 1
+      volumeClaimTemplates:
+      - metadata:
+          name: elasticsearch-data
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 15Gi
+          storageClassName: elasticsearch-data
+---
