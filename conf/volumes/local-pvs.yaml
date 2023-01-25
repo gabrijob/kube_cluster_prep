@@ -28,7 +28,7 @@ spec:
           - key: kubernetes.io/hostname
             operator: In
             values:
-              - nova-9.lyon.grid5000.fr 
+              - nova-8.lyon.grid5000.fr 
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -51,5 +51,5 @@ spec:
           - key: kubernetes.io/hostname
             operator: In
             values:
-              - nova-9.lyon.grid5000.fr 
+              - nova-8.lyon.grid5000.fr 
 ---

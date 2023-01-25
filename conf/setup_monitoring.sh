@@ -27,35 +27,34 @@ helm upgrade --install kube-prometheus prometheus-community/kube-prometheus-stac
 
 
 ##### Setup Jaeger and its dependencies #####
-kubectl get configmap kube-proxy -n kube-system -o yaml | \
-	sed -e "s/strictARP: false/strictARP: true" | \
-	kubectl apply -f - -n kube-system
+#kubectl get configmap kube-proxy -n kube-system -o yaml | \
+#	sed -e "s/strictARP: false/strictARP: true" | \
+#	kubectl apply -f - -n kube-system
 
-helm repo add jetstack https://charts.jetstack.io
-helm repo update
-helm install \
-	cert-manager jetstack/cert-manager \
-	--namespace cert-manager \
-	--create-namespace \
-	--version v1.6.3 \
-	--set installCRDs=true
+#helm repo add jetstack https://charts.jetstack.io
+#helm repo update
+#helm install \
+#	cert-manager jetstack/cert-manager \
+#	--namespace cert-manager \
+#	--create-namespace \
+#	--version v1.6.3 \
+#	--set installCRDs=true
 
-kubectl create -f $root_dir/conf/jaeger/jaeger-operator.yaml -n monitoring
-kubectl rollout status deployment jaeger-operator -n monitoring
-kubectl apply -f $root_dir/conf/jaeger/all-in-one-badger.yaml -n monitoring 
+#kubectl create -f $root_dir/conf/jaeger/jaeger-operator.yaml -n monitoring
+#kubectl rollout status deployment jaeger-operator -n monitoring
+#kubectl apply -f $root_dir/conf/jaeger/all-in-one-badger.yaml -n monitoring 
 
 
 ##### Setup Open Telemetry operator and collector helm charts #####
-helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-helm repo update
-helm install \ 
-	--namespace monitoring \ 
-	opentelemetry-operator open-telemetry/opentelemetry-operator \
-	-f $root_dir/conf/opentelemetry/opentelemetry-operator.yaml
-helm install \ 
-	--namespace monitoring \ 
-	opentelemetry-collector open-telemetry/opentelemetry-collector \
-	-f $root_dir/conf/opentelemetry/opentelemetry-collector.yaml
-
+#helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+#helm repo update
+#helm install \ 
+#	--namespace monitoring \ 
+#	opentelemetry-operator open-telemetry/opentelemetry-operator \
+#	-f $root_dir/conf/opentelemetry/opentelemetry-operator.yaml
+#helm install \ 
+#	--namespace monitoring \ 
+#	opentelemetry-collector open-telemetry/opentelemetry-collector \
+#	-f $root_dir/conf/opentelemetry/opentelemetry-collector.yaml
 
 #### ####
