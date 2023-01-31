@@ -6,10 +6,6 @@ import json
 import urllib
 
 
-prometheus_url = 'http://172.16.52.8:30090'
-query = 'kubelet_http_requests_total[24h]'
-query2 = 'container_cpu_usage_seconds_total[24h]'
-
 cadvisor_metrics = ['container_cpu_usage_seconds_total', 'container_network_receive_packets_total', 
                     'container_network_receive_packets_dropped_total', 'container_memory_failures_total', 
                     'container_memory_cache']
@@ -21,6 +17,29 @@ node_metrics = ['node_memory_MemTotal_bytes', 'node_memory_MemFree_bytes', 'node
 # | One directory per experiment 
 # |- One directory per service
 # |-- One file per metric 
+
+def test_database_build(svc_datadir):
+    metric_pool = {}
+
+    files = os.listdir(svc_datadir)
+    files = [f for f in files if os.path.isfile(svc_datadir+'/'+f)]
+    #print(*files, sep="\n")
+    
+    count = 0
+    for fname in files:
+        f = open(svc_datadir+'/'+fname)
+        data = json.load(f)
+        results = data['data']['result']
+        
+        count = len(results[0]['values']) # every metric should have the same number of samples
+        
+        metric = results[0]['metric']['__name__']
+        metric_pool[metric] = results[0]['values'] 
+
+    #print(metric_pool)
+    # fetch => iterate thorugh all metrics and get values at index i
+
+
 
 def query_prometheus(prometheus_url, query):
     url = prometheus_url + '/api/v1/' + query
@@ -77,7 +96,7 @@ def fetch_svc_cadvisor_metrics(prometheus_url, svc, duration, datadir):
 
         # Save metrics to file
         if res != None:
-            filename = datadir + '/' +metric + '_' + duration + '.json'
+            filename = datadir + '/' + metric + '.json'
             with open(filename, 'w') as f:
                 json.dump(res, f, ensure_ascii=False)
             #print("...Saved.")
@@ -105,7 +124,7 @@ def fetch_svc_node_metrics(prometheus_url, svc, duration, datadir):
 
         # Save metrics to file
         if res != None:
-            filename = datadir + '/' +metric + '_' + duration + '.json'
+            filename = datadir + '/' + metric + '.json'
             with open(filename, 'w') as f:
                 json.dump(res, f, ensure_ascii=False)
             #print("...Saved.")
@@ -117,19 +136,23 @@ def main():
     parser.add_argument('prometheus_url', default='http://localhost:9090', help='URL of the Prometheus server')
     parser.add_argument('-t', '--time_duration', default='2', help='time duration in hours of observed time series')
     parser.add_argument('-n', '--name', default='dataset', help='name of the resulting dataset')
+    parser.add_argument('-D', '--db', help='database dir')
     args = parser.parse_args()
 
     services = query_svc_names(args.prometheus_url)
     dataset_dir = './data/' + args.name + '_' + datetime.now().strftime("%d-%m-%Y-%Hh%Mm%Ss")
     
-    # Query all services for all metrics  
-    for svc in services:
-        svc_data_dir = dataset_dir + '/' + svc['pod']
-        if not os.path.exists(svc_data_dir):
-            os.makedirs(svc_data_dir)
+    if (args.db == None):
+        # Query all services for all metrics  
+        for svc in services:
+            svc_data_dir = dataset_dir + '/' + svc['pod']
+            if not os.path.exists(svc_data_dir):
+                os.makedirs(svc_data_dir)
 
-        fetch_svc_cadvisor_metrics(args.prometheus_url, svc, args.time_duration, svc_data_dir)
-        fetch_svc_node_metrics(args.prometheus_url, svc, args.time_duration, svc_data_dir)
+            fetch_svc_cadvisor_metrics(args.prometheus_url, svc, args.time_duration, svc_data_dir)
+            fetch_svc_node_metrics(args.prometheus_url, svc, args.time_duration, svc_data_dir)
+    else:
+        test_database_build(args.db)
 
 
 if __name__ == "__main__":
