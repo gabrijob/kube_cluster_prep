@@ -4,42 +4,12 @@ import argparse
 from datetime import datetime, timedelta
 import json
 import urllib
-
-
-cadvisor_metrics = ['container_cpu_usage_seconds_total', 'container_network_receive_packets_total', 
-                    'container_network_receive_packets_dropped_total', 'container_memory_failures_total', 
-                    'container_memory_cache']
-
-node_metrics = ['node_memory_MemTotal_bytes', 'node_memory_MemFree_bytes', 'node_cpu_frequency_max_hertz',
-                'node_cpu_frequency_min_hertz', 'node_disk_io_now', 'node_disk_io_time_seconds_total']
-
+import configparser
+import metrics
 
 # | One directory per experiment 
 # |- One directory per service
 # |-- One file per metric 
-
-def test_database_build(svc_datadir):
-    metric_pool = {}
-
-    files = os.listdir(svc_datadir)
-    files = [f for f in files if os.path.isfile(svc_datadir+'/'+f)]
-    #print(*files, sep="\n")
-    
-    count = 0
-    for fname in files:
-        f = open(svc_datadir+'/'+fname)
-        data = json.load(f)
-        results = data['data']['result']
-        
-        count = len(results[0]['values']) # every metric should have the same number of samples
-        
-        metric = results[0]['metric']['__name__']
-        metric_pool[metric] = results[0]['values'] 
-
-    #print(metric_pool)
-    # fetch => iterate thorugh all metrics and get values at index i
-
-
 
 def query_prometheus(prometheus_url, query):
     url = prometheus_url + '/api/v1/' + query
@@ -53,8 +23,7 @@ def query_prometheus(prometheus_url, query):
     return res
 
 
-def query_svc_names(prometheus_url):
-    namespace = 'default'
+def query_svc_names(prometheus_url, namespace='default'):
     query_str = '/label/pod/values?match[]=kube_pod_container_info{namespace="' + namespace + '"}'
     #print("Querying existing services by " + query_str)
     res = query_prometheus(prometheus_url, query_str)
@@ -75,83 +44,61 @@ def query_svc_names(prometheus_url):
     return services
 
 
-def fetch_svc_cadvisor_metrics(prometheus_url, svc, duration, datadir):
-    h = {'Content-Type': 'application/x-www-form-urlencoded'}
+def fetch_all_metrics(metrics, prometheus_url, svc, duration, step, datadir):
     end_dt = datetime.now()
     start_dt = end_dt - timedelta(hours=float(duration))
-    url = prometheus_url + '/api/v1/query_range?'
+
+    for metric in metrics:
+        metric.query(prometheus_url, svc, start_dt, end_dt, step, datadir)
+
+
+def init_all_metrics(metric_config_file='metrics.ini', prometheus_url="http://localhost:9090"):
+    metric_config = configparser.ConfigParser()
+    metric_config.read(metric_config_file)
+   
+    # Read all cAdvisor metrics from config file 
+    cadvisor_metrics = []
+    for item in metric_config.items('CADVISOR'):
+        cadvisor_metrics.extend([name.strip() for name in item[1].split(',')])
+    # Read all NodeExporter metrics from config file 
+    node_metrics = []
+    for item in metric_config.items('NODE'):
+        node_metrics.extend([name.strip() for name in item[1].split(',')])
     
-    # Query prometheus for each metric of given service
-    for metric in cadvisor_metrics:
-        payload = {'query': metric + '{pod="' + svc['pod'] + '"}', 'start': start_dt.timestamp(), 'end': end_dt.timestamp(), 'step': '15s'}
-        #print("Querying " + url + " with payload " + str(payload))
-        
-        # Query Prometheus
-        try:
-            res = requests.post(url, headers=h, data=payload).json()
-        except:
-            res = None
-            print("...Fail at Prometheus request.")
+    all_metrics = []
+    # Generate PrometheusMetricList for cadvisorMetric objects
+    all_metrics.append( metrics.PrometheusMetricList(cadvisor_metrics, metrics.cadvisorMetric, prometheus_url) )
+    # Generate PrometheusMetricList for nodeMetric objects
+    all_metrics.append( metrics.PrometheusMetricList(node_metrics, metrics.nodeMetric, prometheus_url) )
 
-        # Save metrics to file
-        if res != None:
-            filename = datadir + '/' + metric + '.json'
-            with open(filename, 'w') as f:
-                json.dump(res, f, ensure_ascii=False)
-            #print("...Saved.")
+    return all_metrics
 
-    return
-
-
-def fetch_svc_node_metrics(prometheus_url, svc, duration, datadir):
-    h = {'Content-Type': 'application/x-www-form-urlencoded'}
-    end_dt = datetime.now()
-    start_dt = end_dt - timedelta(hours=float(duration))
-    url = prometheus_url + '/api/v1/query_range?'
-
-    # Query prometheus for each metric of given service
-    for metric in node_metrics:
-        payload = {'query': metric + '{instance="' + svc['instance'] + ':9100"}', 'start': start_dt.timestamp(), 'end': end_dt.timestamp(), 'step': '15s'}
-        #print("Querying " + url + " with payload " + str(payload))
-       
-        # Query Prometheus
-        try:
-            res = requests.post(url, headers=h, data=payload).json()
-        except:
-            res = None
-            print("...Fail at Prometheus request.")
-
-        # Save metrics to file
-        if res != None:
-            filename = datadir + '/' + metric + '.json'
-            with open(filename, 'w') as f:
-                json.dump(res, f, ensure_ascii=False)
-            #print("...Saved.")
-
-    return
 
 def main():
     parser = argparse.ArgumentParser(description='Fetch Prometheus metrics to store it in JSON format.')
     parser.add_argument('prometheus_url', default='http://localhost:9090', help='URL of the Prometheus server')
     parser.add_argument('-t', '--time_duration', default='2', help='time duration in hours of observed time series')
-    parser.add_argument('-n', '--name', default='dataset', help='name of the resulting dataset')
-    parser.add_argument('-D', '--db', help='database dir')
+    parser.add_argument('-s', '--time_step', default='1', help='time step in seconds of observed time series')
+    parser.add_argument('-N', '--name', default='dataset', help='name of the resulting dataset')
+    parser.add_argument('-n', '--namespace', default='default', help='kubernetes namespace of observed application')
+    parser.add_argument('-c', '--config', default='metrics.ini', help='path to .ini file with metrics names')
     args = parser.parse_args()
 
-    services = query_svc_names(args.prometheus_url)
+    services = query_svc_names(args.prometheus_url, namespace=args.namespace)
     dataset_dir = './data/' + args.name + '_' + datetime.now().strftime("%d-%m-%Y-%Hh%Mm%Ss")
-    
-    if (args.db == None):
-        # Query all services for all metrics  
-        for svc in services:
-            svc_data_dir = dataset_dir + '/' + svc['pod']
-            if not os.path.exists(svc_data_dir):
-                os.makedirs(svc_data_dir)
 
-            fetch_svc_cadvisor_metrics(args.prometheus_url, svc, args.time_duration, svc_data_dir)
-            fetch_svc_node_metrics(args.prometheus_url, svc, args.time_duration, svc_data_dir)
-    else:
-        test_database_build(args.db)
+    all_metrics = init_all_metrics(args.config, args.prometheus_url)
+
+    # Query all services for all metrics  
+    for svc in services:
+        svc_data_dir = dataset_dir + '/' + svc['pod']
+        if not os.path.exists(svc_data_dir):
+            os.makedirs(svc_data_dir)
+    
+            end_dt = datetime.now()
+            start_dt = end_dt - timedelta(hours=float(args.time_duration))
+            for metric_list in all_metrics:
+                metric_list.query_for_service(svc, start_dt, end_dt, args.time_step, svc_data_dir)
 
 
 if __name__ == "__main__":
