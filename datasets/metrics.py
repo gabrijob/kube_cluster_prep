@@ -51,14 +51,24 @@ class PrometheusMetricList():
         self.url = url
         self._init_metric_metadata()
 
-    def _get_query_modifier(self, metadata):
-        if (metadata['type'] == "gauge"):
-            modifier = lambda s: 'sum(' + s + ')'
-        elif (metadata['type'] == "counter"):
-            modifier = lambda s: 'sum(rate(' + s + '[30s]))'  
+    def _get_query_modifier(self, metadata): 
+        if ("temperature" in metadata['help']):
+            aggregator = 'avg'
         else:
-            modifier = lambda s: s
+            aggregator = 'sum'
+        
+        if ("byte" in metadata['help']):
+            q = 1024*1024*1024
+        else:
+            q = 1
 
+        if (metadata['type'] == "gauge"):
+            modifier = lambda s: aggregator + '(' + s + ')' + '/' + str(q) 
+        elif (metadata['type'] == "counter"):
+            modifier = lambda s: aggregator + '(rate(' + s+ '[30s]))' + '/' + str(q) 
+        else:
+            modifier = lambda s: s + '/' + str(q) 
+   
         return modifier
 
     def _init_metric_metadata(self):
