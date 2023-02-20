@@ -20,7 +20,7 @@ class Metric:
         payload = {'query': query_str, 'start': start_dt.timestamp(), 'end': end_dt.timestamp(), 'step': step+'s'}
 
         url = prometheus_url + '/api/v1/query_range?'
-        print("Querying " + url + " with payload " + str(payload))
+        #print("Querying " + url + " with payload " + str(payload))
        
         # Query Prometheus
         try:
@@ -28,7 +28,7 @@ class Metric:
         except:
             res = None
             print("...Fail at Prometheus request.")
-
+        
         if res != None and len(res['data']['result']) > 0:
             self._save_as_json(res, datadir)
 
@@ -85,10 +85,7 @@ class PrometheusMetricList():
             if res != None:
                 metadata = res['data'][metric][0]
 
-            metric_obj = self.metric_class(name=metric, \
-                    form=metadata['type'], \
-                    unit=metadata['unit'], \
-                    query_modifier=self._get_query_modifier(metadata))
+            metric_obj = self.metric_class(name=metric, form=metadata['type'], unit=metadata['unit'], query_modifier=self._get_query_modifier(metadata))
             
             self.metric_objs.append(metric_obj)
       
