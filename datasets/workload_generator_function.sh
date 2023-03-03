@@ -15,7 +15,7 @@ teastore_load_generator() {
 	for REQUEST in teastore_browse teastore_buy; do
 		sed -i "$sed_str" $dir/httploadgenerator/$REQUEST.lua
 
-		for INTENSITY in increasingLowIntensity increasingMedIntensity increasingHighIntensity; do 
+		for INTENSITY in sinLowDenseIntensity sinLowSparseIntensity sinMedDenseIntensity sinMedSparseIntensity sinHighDenseIntensity sinHighSparseIntensity; do 
 			begin_t=$(date +%s)
 			end_t=$(date -d "+${duration_h} hours" +%s)
 			now_t=$(date +%s)
