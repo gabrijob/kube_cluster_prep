@@ -2,7 +2,7 @@
 
 dir=$(pwd)
 
-################################################### TeaStore load generator ###########################################################
+############################################# TeaStore single load generator ##########################################################
 teastore_load_generator() {
 	duration_h=$1
 	time_step=$2
@@ -31,6 +31,46 @@ teastore_load_generator() {
 
 			done
 			python3 $dir/prometheus_fetch.py $prometheus_url -N "${REQUEST}_${INTENSITY}" -t $duration_h -s $time_step -c $dir/metrics.ini
+		done
+	done
+#CLEANUP: kubectl delete all --all
+}
+#######################################################################################################################################
+
+############################################### TeaStore double load generator ########################################################
+teastore_double_load_generator() {
+	duration_h=$1
+	time_step=$2
+	webui_addr=$3
+	prometheus_url=$4
+	generator_one_ip=$5
+	generator_two_ip=$6
+	
+	sed_str="s/http:\/\/.*\/t/http:\/\/${webui_addr}\/t/"
+
+	echo "TeaStore Workload Generation"
+
+	for REQUEST in teastore_browse teastore_buy; do
+		sed -i "$sed_str" $dir/httploadgenerator/$REQUEST.lua
+
+		for INTENSITY in sinMedDenseIntensity sinMedSparseIntensity; do 
+			begin_t=$(date +%s)
+			end_t=$(date -d "+${duration_h} hours" +%s)
+			now_t=$(date +%s)
+			
+			echo "----- Starting workload $REQUEST with intensity $INTENSITY for $duration_h hours -----"
+			while [ $begin_t -le $now_t -a $now_t -le $end_t  ]; do
+				outfile="out_${REQUEST}_${INTENSITY}_${now_t}"
+				ssh $generator_one_ip "sh -c '( ( nohup java -jar $dir/httploadgenerator/httploadgenerator.jar loadgenerator ) & )'"
+				ssh $generator_two_ip "sh -c '( ( nohup java -jar $dir/httploadgenerator/httploadgenerator.jar loadgenerator ) & )'"
+				java -jar $dir/httploadgenerator/httploadgenerator.jar director -s $generator_one_ip,$generator_two_ip -a $dir/httploadgenerator/$INTENSITY.csv -l $dir/httploadgenerator/$REQUEST.lua -o $outfile.csv -t 256
+				ssh $generator_one_ip 'kill $(pidof java)'
+				ssh $generator_two_ip 'kill $(pidof java)'
+				sleep 5
+				now_t=$(date +%s)
+
+			done
+			python3 $dir/prometheus_fetch.py $prometheus_url -N "double_${REQUEST}_${INTENSITY}" -t $duration_h -s $time_step -c $dir/metrics.ini
 		done
 	done
 #CLEANUP: kubectl delete all --all
