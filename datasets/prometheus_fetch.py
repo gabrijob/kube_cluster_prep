@@ -47,12 +47,13 @@ def query_svc_names(prometheus_url, namespace='default'):
 def fetch_all_metrics(metrics, prometheus_url, svc, duration, step, datadir):
     end_dt = datetime.now()
     start_dt = end_dt - timedelta(hours=float(duration))
+    #start_dt = end_dt - timedelta(minutes=float(duration))
 
     for metric in metrics:
         metric.query(prometheus_url, svc, start_dt, end_dt, step, datadir)
 
 
-def init_all_metrics(metric_config_file='metrics.ini', prometheus_url="http://localhost:9090"):
+def init_all_metrics(metric_config_file='metrics.ini', prometheus_url="http://localhost:9090", duration_h='2'):
     metric_config = configparser.ConfigParser()
     metric_config.read(metric_config_file)
    
@@ -67,9 +68,9 @@ def init_all_metrics(metric_config_file='metrics.ini', prometheus_url="http://lo
     
     all_metrics = []
     # Generate PrometheusMetricList for cadvisorMetric objects
-    all_metrics.append( metrics.PrometheusMetricList(cadvisor_metrics, metrics.cadvisorMetric, prometheus_url) )
+    all_metrics.append( metrics.PrometheusMetricList(cadvisor_metrics, metrics.cadvisorMetric, prometheus_url, duration_h) )
     # Generate PrometheusMetricList for nodeMetric objects
-    all_metrics.append( metrics.PrometheusMetricList(node_metrics, metrics.nodeMetric, prometheus_url) )
+    all_metrics.append( metrics.PrometheusMetricList(node_metrics, metrics.nodeMetric, prometheus_url, duration_h) )
 
     return all_metrics
 
@@ -87,7 +88,7 @@ def main():
     services = query_svc_names(args.prometheus_url, namespace=args.namespace)
     dataset_dir = './data/' + args.name + '_' + datetime.now().strftime("%d-%m-%Y-%Hh%Mm%Ss")
 
-    all_metrics = init_all_metrics(args.config, args.prometheus_url)
+    all_metrics = init_all_metrics(args.config, args.prometheus_url, args.time_duration)
 
     # Query all services for all metrics  
     for svc in services:
