@@ -3,7 +3,7 @@
 	or
 	$ oarsub -p [CLUSTER_NAME] -l host=[N_HOSTS],walltime=[PERIOD] -r [YYYY-MM-DD HH:MM:SS] -t deploy
 
-	$ kadeploy3 ubuntu2004-min -f $OAR_FILE_NODES -k ~/.ssh/id_rsa.pub
+	$ kadeploy3 debian11-base -f $OAR_FILE_NODES -k ~/.ssh/id_rsa.pub
 
 # Setting up the Kubernetes cluster
 	
