@@ -20,7 +20,7 @@ class Metric:
         payload = {'query': query_str, 'start': start_dt.timestamp(), 'end': end_dt.timestamp(), 'step': step+'s'}
 
         url = prometheus_url + '/api/v1/query_range?'
-        #print("Querying " + url + " with payload " + str(payload))
+        print("Querying " + url + " with payload " + str(payload))
        
         # Query Prometheus
         try:
@@ -43,11 +43,11 @@ class Metric:
 
 
 class PrometheusMetricList():
-    def __init__(self, metric_names, metric_class=Metric, url="http://localhost:9090"):
+    def __init__(self, metric_names, metric_class=Metric, url="http://localhost:9090", duration_h='1'):
         self.names = metric_names
         self.metric_objs = []
         self.metric_class = metric_class
-        
+        self.duration_h = duration_h + 'h'
         self.url = url
         self._init_metric_metadata()
 
@@ -65,7 +65,7 @@ class PrometheusMetricList():
         if (metadata['type'] == "gauge"):
             modifier = lambda s: aggregator + '(' + s + ')' + '/' + str(q) 
         elif (metadata['type'] == "counter"):
-            modifier = lambda s: aggregator + '(rate(' + s+ '[30s]))' + '/' + str(q) 
+            modifier = lambda s: aggregator + '(irate(' + s + '[' + self.duration_h + ']))' + '/' + str(q) 
         else:
             modifier = lambda s: s + '/' + str(q) 
    
@@ -75,7 +75,7 @@ class PrometheusMetricList():
         for metric in self.names:
             query_str = 'metadata?metric=' + metric
             url = self.url + '/api/v1/' + query_str
-            #print("Querying " + url)
+            print("Querying metadata at " + url)
             try:
                 res = requests.get(url).json()
             except:
