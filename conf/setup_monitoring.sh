@@ -4,7 +4,7 @@
 #sed_str=$(echo s/"$old_prom_node"/"$prom_node"/g)
 
 
-root_dir="/home/ggrabher/kube_cluster_prep"
+root_dir="$DIR/kube_cluster_prep"
 
 ##### Setup local storage #####
 prom_node="$(tail -1 $root_dir/nodesfile).lyon.grid5000.fr"

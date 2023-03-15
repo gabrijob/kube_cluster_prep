@@ -20,7 +20,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   local:
-    path: /home/ggrabher/share
+    path: ${DIR}/share
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -28,7 +28,7 @@ spec:
           - key: kubernetes.io/hostname
             operator: In
             values:
-              - nova-9.lyon.grid5000.fr 
+              - ${PROM_NODE}.lyon.grid5000.fr 
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -43,7 +43,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   local:
-    path: /home/ggrabher/share
+    path: ${DIR}/share
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -51,5 +51,5 @@ spec:
           - key: kubernetes.io/hostname
             operator: In
             values:
-              - nova-9.lyon.grid5000.fr 
+              - ${PROM_NODE}.lyon.grid5000.fr 
 ---

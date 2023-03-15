@@ -1,6 +1,6 @@
 #/!/bin/bash
 
-dir='/home/ggrabher/kube_cluster_prep/'
+dir="$DIR/kube_cluster_prep"
 
 git clone https://github.com/DescartesResearch/TeaStore.git
 kubectl create -f https://raw.githubusercontent.com/DescartesResearch/TeaStore/master/examples/kubernetes/teastore-ribbon.yaml
