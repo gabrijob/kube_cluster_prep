@@ -3,13 +3,14 @@
 #old_prom_node=$(grep '.grid5000.fr' $root_dir/conf/prometheus/local-storage.yaml | sed 's/[\t ]//g;s/-//')
 #sed_str=$(echo s/"$old_prom_node"/"$prom_node"/g)
 
-
+source env.sh
+export KUBECONFIG=/etc/kubernetes/admin.conf
 root_dir="$DIR/kube_cluster_prep"
 
 ##### Setup local storage #####
-prom_node="$(tail -1 $root_dir/nodesfile).lyon.grid5000.fr"
-sed_str=$(echo s/\-.*grid5000\.fr/- "$prom_node"/g)
-sed -i "$sed_str" $root_dir/conf/volumes/local-pvs.yaml
+# prom_node="$(tail -1 $root_dir/nodesfile).lyon.grid5000.fr"
+# sed_str=$(echo s/\-.*grid5000\.fr/- "$prom_node"/g)
+# sed -i "$sed_str" $root_dir/conf/volumes/local-pvs.yaml
 
 kubectl apply -f $root_dir/conf/volumes/local-pvs.yaml
 echo "Monitoring will be setup on $prom_node"
