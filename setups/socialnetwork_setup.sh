@@ -1,6 +1,6 @@
 #/!/bin/bash
 
-dir='/home/ggrabher/kube_cluster_prep/'
+dir="$DIR/kube_cluster_prep"
 
 git clone https://github.com/delimitrou/DeathStarBench.git
 cp $dir/conf/workload_generator/nginx-thrift-nodeport.yaml ./
