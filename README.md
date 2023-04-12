@@ -26,3 +26,9 @@
 	$ kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 	$ export KUBECONFIG=/etc/kubernetes/admin.conf
 
+# Launch monitoring setup
+	
+	$ ssh root@[MASTER_NODE]
+	$ source PATH/TO/kube_cluster_prep/setups/setup_env_vars.sh
+	$ PATH/TO/kube_cluster_prep/setups/setup_monitoring.sh
+
