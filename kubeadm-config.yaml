@@ -1,8 +1,25 @@
-#
+# Config for controllerManager, etcd, scheduler and proxy components making bound to a non loopback IP
+# This way Prometheus can fetch their metrics
 kind: ClusterConfiguration
 apiVersion: kubeadm.k8s.io/v1beta3
 kubernetesVersion: v1.26.2
+controllerManager:
+  extraArgs:
+    bind-address: 0.0.0.0 
+etcd:
+  local:
+    extraArgs:
+      listen-metrics-urls: http://0.0.0.0:2381
+scheduler:
+  extraArgs:
+    bind-address: 0.0.0.0
+    show-hidden-metrics-for-version: "1.25"
+---
+kind: KubeProxyConfiguration
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+metricsBindAddress: 0.0.0.0
 ---
 kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1
 cgroupDriver: systemd
+---

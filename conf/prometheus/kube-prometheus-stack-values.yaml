@@ -1043,9 +1043,9 @@ kubelet:
     ## Enable scraping /metrics/resource from kubelet's service
     ## This is disabled by default because container metrics are already exposed by cAdvisor
     ##
-    resource: false
+    resource: true
     # From kubernetes 1.18, /metrics/resource/v1alpha1 renamed to /metrics/resource
-    resourcePath: "/metrics/resource/v1alpha1"
+    resourcePath: "/metrics/resource"
 
     ## MetricRelabelConfigs to apply to samples after scraping, but before ingestion.
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
@@ -3221,16 +3221,18 @@ prometheus:
     #      - a1.app.local
     #      - b1.app.local
 
-  additionalRulesForClusterRole: []
+  additionalRulesForClusterRole: 
   #  - apiGroups: [ "" ]
   #    resources:
   #      - nodes/proxy
   #    verbs: [ "get", "list", "watch" ]
+    - nonResourceURLs: ["/metrics/resources"]
+      verbs: ["get"]
 
-  additionalServiceMonitors: []
+  additionalServiceMonitors: 
   ## Name of the ServiceMonitor to create
   ##
-  # - name: ""
+    - name: "kube-prome-kube-scheduler-resources"
 
     ## Additional labels to set used for the ServiceMonitorSelector. Together with standard labels from
     ## the chart
@@ -3240,7 +3242,7 @@ prometheus:
     ## Service label for use in assembling a job name of the form <label value>-<port>
     ## If no label is specified, the service name is used.
     ##
-    # jobLabel: ""
+      jobLabel: jobLabel
 
     ## labels to transfer from the kubernetes service to the target
     ##
@@ -3252,25 +3254,28 @@ prometheus:
 
     ## Label selector for services to which this ServiceMonitor applies
     ##
-    # selector: {}
+      selector: 
+        matchLabels:
+          app: "kube-prometheus-stack-kube-scheduler"
+          release: "kube-prometheus"
 
     ## Namespaces from which services are selected
     ##
-    # namespaceSelector:
+      namespaceSelector:
       ## Match any namespace
       ##
-      # any: false
+        any: false
 
       ## Explicit list of namespace names to select
       ##
-      # matchNames: []
+        matchNames: ["kube-system"]
 
     ## Endpoints of the selected service to be monitored
     ##
-    # endpoints: []
+      endpoints: 
       ## Name of the endpoint's service port
       ## Mutually exclusive with targetPort
-      # - port: ""
+        - port: "http-metrics"
 
       ## Name or number of the endpoint's target port
       ## Mutually exclusive with port
@@ -3278,27 +3283,27 @@ prometheus:
 
       ## File containing bearer token to be used when scraping targets
       ##
-      #   bearerTokenFile: ""
+          bearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"
 
       ## Interval at which metrics should be scraped
       ##
-      #   interval: 30s
+          interval: 30s
 
       ## HTTP path to scrape for metrics
       ##
-      #   path: /metrics
+          path: "/metrics/resources"
 
       ## HTTP scheme to use for scraping
       ##
-      #   scheme: http
+          scheme: https
 
       ## TLS configuration to use when scraping the endpoint
       ##
-      #   tlsConfig:
-
+          tlsConfig:
+          
           ## Path to the CA file
           ##
-          # caFile: ""
+            caFile: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 
           ## Path to client certificate file
           ##
@@ -3306,7 +3311,7 @@ prometheus:
 
           ## Skip certificate verification
           ##
-          # insecureSkipVerify: false
+            insecureSkipVerify: true
 
           ## Path to client key file
           ##
@@ -3314,7 +3319,7 @@ prometheus:
 
           ## Server name used to verify host name
           ##
-          # serverName: ""
+          #  serverName: null
 
   additionalPodMonitors: []
   ## Name of the PodMonitor to create
