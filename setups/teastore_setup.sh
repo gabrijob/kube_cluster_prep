@@ -25,7 +25,7 @@ kubectl apply -f $dir/conf/limitrange/big-limit-range.yaml
 
 ##### Launch TeaStore #####
 kubectl create -f $dir/conf/teastore/teastore-ribbon-with-affinity.yaml --namespace big-limited
-kubectl rollout status deployment teastore-webui
+kubectl rollout status deployment teastore-webui -n big-limited
 
 host_name=$(kubectl get pod --selector 'run=teastore-webui' -n big-limited -o jsonpath='{.items[*].spec.nodeName}')
 host_ip=$(kubectl get node $host_name -o jsonpath='{.status.addresses[0].address}')
