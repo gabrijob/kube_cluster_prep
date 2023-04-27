@@ -1,12 +1,12 @@
 #/!/bin/bash
 
 dir="$DIR/kube_cluster_prep"
-FRONTEND_NODE=$(sed '5!d' $NODES_FILE)
-MIDDLE_NODE=$(sed '4!d' $NODES_FILE)
-BACKEND_NODE=$(sed '3!d' $NODES_FILE)
-FRONTEND_NODE_NAME="$FRONTEND_NODE.lyon.grid5000.fr"
-MIDDLE_NODE_NAME="$MIDDLE_NODE.lyon.grid5000.fr"
-BACKEND_NODE_NAME="$BACKEND_NODE.lyon.grid5000.fr"
+#FRONTEND_NODE=$(sed '5!d' $NODES_FILE)
+#MIDDLE_NODE=$(sed '4!d' $NODES_FILE)
+#BACKEND_NODE=$(sed '3!d' $NODES_FILE)
+#FRONTEND_NODE_NAME="$FRONTEND_NODE.grenoble.grid5000.fr"
+#MIDDLE_NODE_NAME="$MIDDLE_NODE.grenoble.grid5000.fr"
+#BACKEND_NODE_NAME="$BACKEND_NODE.grenoble.grid5000.fr"
 
 ##### Pre setup #####
 # Label front, middle and back end nodes
