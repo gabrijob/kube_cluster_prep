@@ -3264,11 +3264,11 @@ prometheus:
       namespaceSelector:
       ## Match any namespace
       ##
-        any: false
+        any: true
 
       ## Explicit list of namespace names to select
       ##
-        matchNames: ["kube-system"]
+      #  matchNames: ["kube-system"]
 
     ## Endpoints of the selected service to be monitored
     ##

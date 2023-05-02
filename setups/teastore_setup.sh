@@ -21,7 +21,7 @@ echo "TeaStore back end will be setup on $BACKEND_NODE_NAME"
 
 # Create namespace with resource default limits and requests
 kubectl create namespace big-limited
-kubectl apply -f $dir/conf/limitrange/big-limit-range.yaml
+kubectl apply -f $dir/conf/limitrange/big-limit-range.yaml --namespace big-limited
 
 ##### Launch TeaStore #####
 kubectl create -f $dir/conf/teastore/teastore-ribbon-with-affinity.yaml --namespace big-limited
