@@ -25,7 +25,7 @@ kubectl create namespace monitoring
 ##### Setup the Prometheus helm chart #####
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
-helm upgrade --install kube-prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --values $root_dir/conf/prometheus/kube-prometheus-stack-values.yaml
+helm upgrade --install kube-prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --values $root_dir/conf/prometheus/kube-prometheus-stack-values.yaml  --no-hooks
 
 
 #### ####
