@@ -22,4 +22,9 @@ metricsBindAddress: 0.0.0.0
 kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1
 cgroupDriver: systemd
+authentication:
+  anonymous:
+    enabled: true
+authorization:
+  mode: AlwaysAllow
 ---

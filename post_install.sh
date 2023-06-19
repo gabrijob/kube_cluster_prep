@@ -15,7 +15,7 @@ update-local-key  $filename $dir
 
 # Setup all dependencies for helm and kubernetes
 for i in $(cat ${filename}); do 
-	#ssh-copy-id $USER@$i
+	ssh-copy-id $USER@$i
 	ssh root@$i 'bash -s' < setups/post_install_setup.sh
 	scp kubeadm-config.yaml root@$i: 
 	scp conf/limitrange/big-limit-range.yaml root@$i:
